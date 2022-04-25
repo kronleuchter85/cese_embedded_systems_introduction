@@ -1,5 +1,5 @@
 
-#include "measurements_and_tariffs.h"
+#include "readings_and_tariffs.h"
 #include "uart_user_service.h"
 #include "mbed.h"
 #include "arm_book_lib.h"
@@ -19,7 +19,7 @@ void serial_update() {
         uartUsb.printf("Nada... \r\n");
     }
 
-    uartUsb.printf("Pote Reading: %f\r\n", measurements_and_tariffs_get_current_measure());
+    uartUsb.printf("Pote Reading: %f\r\n", readings_and_tariffs_get_current_measure());
 }
 
 
