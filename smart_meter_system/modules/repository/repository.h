@@ -1,15 +1,21 @@
 #ifndef _REPOSIOTRY
 #define _REPOSIOTRY
 
+void repository_initialize();
+
+int repository_available_tariffs_count_get();
+
+float repository_available_tariffs_get(int index);
+
+void repository_available_tariff_add(float t);
+
 void repository_initialize_readings();
 
 void repository_add_partial_inter_hour_reading(float m);
 
-
 void repository_add_daily_reading_to_month(float m);
 
 float repository_partial_inter_hour_reading_get(int index);
-
 
 void repository_daily_reading_set(float reading);
 
@@ -21,16 +27,18 @@ float repository_daily_reading_get();
 
 float repository_monthly_reading_get();
 
-
 int repository_partial_inter_hour_readings_count_get();
 
 int repository_hourly_readings_count_get();
 
 int repository_daily_readings_count_get();
 
-
 void repository_add_hourly_reading(float f);
 
 float repository_total_meter_reading_get();
+
+void repository_active_tariff_set(int tariff_index);
+
+int repository_active_tariff_get();
 
 #endif // _DISPLAY_H_

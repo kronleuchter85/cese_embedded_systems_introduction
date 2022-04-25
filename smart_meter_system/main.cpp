@@ -8,12 +8,9 @@
 #include "readings_and_tariffs.h"
 #include "repository.h"
 
-
 //===============================================================
 
-
 static Ticker take_partial_reading_interruption;
-
 
 bool RELEASE_PARTIAL = false;
 
@@ -31,12 +28,18 @@ void release_partial_reading()
 
 static void display_update()
 {
-
     char *format = "%02d %.2f kWh $%.1f";
     char hh[14];
     char dd[14];
     char mm[14];
     char tt[14];
+
+    int current_tariff_index = repository_active_tariff_get();
+    float current_tariff = repository_available_tariffs_get(current_tariff_index);
+
+    sprintf(tt, "%.2f kWh | %.2f $/kWh", repository_total_meter_reading_get(), current_tariff );
+    displayCharPositionWrite(0, 0);
+    displayStringWrite(tt);
 
     sprintf(hh, format, repository_partial_inter_hour_readings_count_get(), repository_hourly_reading_get(), readings_and_tariffs_get_current_spending(repository_hourly_reading_get()));
     displayCharPositionWrite(0, 1);
@@ -50,30 +53,26 @@ static void display_update()
     displayCharPositionWrite(0, 3);
     displayStringWrite(mm);
 
-    sprintf(tt, "Total: %7.2f kWh", repository_total_meter_reading_get());
-    displayCharPositionWrite(0, 0);
-    displayStringWrite(tt);
-
 }
 
 void display_init()
 {
-
     displayInit(DISPLAY_CONNECTION_I2C_PCF8574_IO_EXPANDER);
-
 }
 
 int main()
 {
 
+    repository_initialize();
+    user_flow_initialize();
     display_init();
 
-    // update_display_interruption.attach(&display_update_trigger, 0.5);
-
-    take_partial_reading_interruption.attach(&release_partial_reading, 0.01);
+    take_partial_reading_interruption.attach(&release_partial_reading, 0.1);
 
     while (true)
     {
+
+        user_flow_execute();
 
         if (RELEASE_PARTIAL)
         {
@@ -94,13 +93,13 @@ int main()
                 repository_add_hourly_reading(estimatedReading);
             }
 
+            display_update();
+
             RELEASE_PARTIAL = false;
+
         }
 
-        serial_update();
-
-        display_update();
-
+        
     }
 }
 

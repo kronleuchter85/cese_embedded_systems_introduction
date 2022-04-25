@@ -1,16 +1,18 @@
 #include <stdlib.h>
 #include <time.h>
 #include "repository.h"
-
+#define MAX_AMOUNT_OF_TARIFS 10
 //======================== Repository ================================
 
-static float available_tariffs[10];
+static float available_tariffs[MAX_AMOUNT_OF_TARIFS];
+static int available_tariffs_count = 0;
 
 static float partial_inter_hour_readings[10];
 static int partial_inter_hour_readings_count = 0;
 
 static float last_hour_reading = 0;
 
+static int current_tariff_index = 0;
 //
 // al dia podemos tener un maximo de 24 lecturas
 //
@@ -27,7 +29,19 @@ static float monthly_reading_accum = 0;
 
 static float total_meter_accum = 0;
 
-float repository_total_meter_reading_get(){
+void repository_active_tariff_set(int tariff_index)
+{
+    if (tariff_index <= repository_available_tariffs_count_get())
+        current_tariff_index = tariff_index;
+}
+
+int repository_active_tariff_get()
+{
+    return current_tariff_index;
+}
+
+float repository_total_meter_reading_get()
+{
     return total_meter_accum;
 }
 
@@ -60,7 +74,6 @@ void repository_add_partial_inter_hour_reading(float m)
     partial_inter_hour_readings_count++;
 }
 
-
 float repository_partial_inter_hour_reading_get(int index)
 {
     return partial_inter_hour_readings[index];
@@ -83,18 +96,30 @@ float repository_monthly_reading_get()
 
 void repository_initialize()
 {
-    srand(time(NULL));
-
-    int i;
-    for (i = 0; i < 10; i++)
-    {
-        available_tariffs[i] = 1 + rand();
-    }
+    repository_available_tariff_add((float)3.05);
+    repository_available_tariff_add((float)2.067);
 }
 
-float *repository_available_tariffs_get()
+int repository_available_tariffs_count_get()
 {
-    return available_tariffs;
+    return available_tariffs_count;
+}
+
+float repository_available_tariffs_get(int index)
+{
+    if (index >= available_tariffs_count)
+        return -1;
+
+    return available_tariffs[index];
+}
+
+void repository_available_tariff_add(float t)
+{
+    if (available_tariffs_count < MAX_AMOUNT_OF_TARIFS)
+    {
+        available_tariffs[available_tariffs_count] = t;
+        available_tariffs_count++;
+    }
 }
 
 int repository_partial_inter_hour_readings_count_get()
@@ -126,19 +151,17 @@ void repository_add_hourly_reading(float hourly_reading)
         //
         daily_reading_accum = 0;
         hourly_readings_count = 0;
-        
-        
+
         //
         // incrementamos un dia del mes
         //
         daily_readings_count++;
     }
 
-
     //
     // si pasaron 30 dias
     //
-    if (daily_readings_count >= 30 )
+    if (daily_readings_count >= 30)
     {
         //
         // reseteamos el acumulado mensual
@@ -154,12 +177,10 @@ void repository_add_hourly_reading(float hourly_reading)
     last_hour_reading = hourly_reading;
 
     daily_reading_accum = daily_reading_accum + hourly_reading;
-    
+
     monthly_reading_accum = monthly_reading_accum + hourly_reading;
-    
+
     hourly_readings_count++;
 
     total_meter_accum = total_meter_accum + hourly_reading;
 }
-
-
